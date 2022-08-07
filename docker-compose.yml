@@ -4,10 +4,11 @@ volumes:
   psysh-store:
 services:
   app:
+    image: my-app
     build:
       context: .
       dockerfile: ./infra/docker/php/Dockerfile
-      target: "9000"
+      target: ${APP_BUILD_TARGET:-development}
     volumes:
       - type: bind
         source: ./src
@@ -22,8 +23,8 @@ services:
       - APP_KEY=${APP_KEY:-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX}
       - APP_ENV=${APP_ENV:-local}
       - APP_URL=${APP_URL:-http://localhost}
-      # - LOG_CHANNEL=${LOG_CHANNEL:-stderr}
-      # - LOG_STDERR_FORMATTER=${LOG_STDERR_FORMATTER:-Monolog\Formatter\JsonFormatter}
+      - LOG_CHANNEL=${LOG_CHANNEL:-stderr}
+      - LOG_STDERR_FORMATTER=${LOG_STDERR_FORMATTER:-Monolog\Formatter\JsonFormatter}
       - DB_CONNECTION=${DB_CONNECTION:-mysql}
       - DB_HOST=${DB_HOST:-db}
       - DB_PORT=${DB_PORT:-3306}
@@ -65,3 +66,20 @@ services:
       - MYSQL_USER=${DB_USERNAME:-phper}
       - MYSQL_PASSWORD=${DB_PASSWORD:-secret}
       - MYSQL_ROOT_PASSWORD=${DB_PASSWORD:-secret}
+
+  supervisor:
+    image: my-app
+    build:
+      context: .
+      dockerfile: ./infra/docker/supervisor/Dockerfile
+    volumes:
+      - type: bind
+        source: ./src
+        target: /data
+      - type: volume
+        source: psysh-store
+        target: /root/.config/psysh
+        volume:
+          nocopy: true
+    depends_on:
+      - app
