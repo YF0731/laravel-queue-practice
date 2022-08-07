@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\DynamoDbController;
+use App\Http\Controllers\JobDispatchController;
 use App\Http\Controllers\SqsController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\TestController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -17,3 +19,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/send', [SqsController::class, 'send']);
 Route::get('/receive', [SqsController::class, 'receive']);
+
+Route::get('/dynamo', [DynamoDbController::class, 'test']);
+
+Route::get('/worker', [JobDispatchController::class, 'send']);
+
+Route::get('/test', [TestController::class, 'test']);

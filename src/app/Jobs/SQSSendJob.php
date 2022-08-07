@@ -1,22 +1,37 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Jobs;
 
 use App\Action\GetQueueUrl;
-use Aws\Exception\AwsException;
-use Aws\Sqs\SqsClient;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
 
-class SqsController extends Controller
+class SQSSendJob implements ShouldQueue
 {
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
     private string $queueUrl;
 
+    /**
+     * Create a new job instance.
+     *
+     * @return void
+     */
     public function __construct()
     {
         $this->queueUrl = GetQueueUrl::get();
     }
 
-    public function send()
+    /**
+     * Execute the job.
+     *
+     * @return void
+     */
+    public function handle()
     {
         $client = new SqsClient([
             'credentials' => [
@@ -52,39 +67,6 @@ class SqsController extends Controller
             Log::info($result);
         } catch (AwsException $e) {
             error_log($e->getMessage());
-        }
-    }
-
-    public function receive()
-    {
-        $client = new SqsClient([
-            'credentials' => [
-                'key' => \config("queue.connections.sqs.key"),
-                'secret' => \config("queue.connections.sqs.secret"),
-            ],
-            'region' => 'ap-northeast-1',
-            'version' => '2012-11-05',
-        ]);
-
-        try {
-            $result = $client->receiveMessage(array(
-                'AttributeNames' => ['SentTimestamp'],
-                'MaxNumberOfMessages' => 1,
-                'MessageAttributeNames' => ['All'],
-                'QueueUrl' => $this->queueUrl,
-                'WaitTimeSeconds' => 0,
-            ));
-            if (!empty($result->get('Messages'))) {
-                var_dump($result->get('Messages')[0], 'test');
-                $result = $client->deleteMessage([
-                    'QueueUrl' => $this->queueUrl,
-                    'ReceiptHandle' => $result->get('Messages')[0]['ReceiptHandle']
-                ]);
-            } else {
-                echo "No messages in queue. \n";
-            }
-        } catch (AwsException $e) {
-            \dd($e->getMessage());
         }
     }
 }
