@@ -2,12 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Action\GetQueueUrl;
 use Aws\Exception\AwsException;
 use Aws\Sqs\SqsClient;
 use Illuminate\Support\Facades\Log;
 
 class SqsController extends Controller
 {
+    private string $queueUrl;
+
+    public function __construct()
+    {
+        $this->queueUrl = GetQueueUrl::get();
+    }
+
     public function send()
     {
         $client = new SqsClient([
@@ -36,7 +44,7 @@ class SqsController extends Controller
                 ]
             ],
             'MessageBody' => "Information about current NY Times fiction bestseller for week of 12/11/2016.",
-            'QueueUrl' => 'https://sqs.ap-northeast-1.amazonaws.com/695791177220/MyQueue'
+            'QueueUrl' => $this->queueUrl,
         ];
 
         try {
@@ -49,8 +57,6 @@ class SqsController extends Controller
 
     public function receive()
     {
-        $queueUrl = \config("queue.connections.sqs.prefix") . '/' . \config("queue.connections.sqs.queue");
-
         $client = new SqsClient([
             'credentials' => [
                 'key' => \config("queue.connections.sqs.key"),
@@ -65,13 +71,13 @@ class SqsController extends Controller
                 'AttributeNames' => ['SentTimestamp'],
                 'MaxNumberOfMessages' => 1,
                 'MessageAttributeNames' => ['All'],
-                'QueueUrl' => $queueUrl,
+                'QueueUrl' => $this->queueUrl,
                 'WaitTimeSeconds' => 0,
             ));
             if (!empty($result->get('Messages'))) {
                 var_dump($result->get('Messages')[0]);
                 $result = $client->deleteMessage([
-                    'QueueUrl' => $queueUrl,
+                    'QueueUrl' => $this->queueUrl,
                     'ReceiptHandle' => $result->get('Messages')[0]['ReceiptHandle']
                 ]);
             } else {

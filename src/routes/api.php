@@ -15,9 +15,5 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
-
 Route::get('/send', [SqsController::class, 'send']);
 Route::get('/receive', [SqsController::class, 'receive']);
