@@ -67,13 +67,13 @@ class SqsController extends Controller
         ]);
 
         try {
-            $result = $client->receiveMessage(array(
+            $result = $client->receiveMessage([
                 'AttributeNames' => ['SentTimestamp'],
                 'MaxNumberOfMessages' => 1,
                 'MessageAttributeNames' => ['All'],
                 'QueueUrl' => $this->queueUrl,
                 'WaitTimeSeconds' => 0,
-            ));
+            ]);
             if (!empty($result->get('Messages'))) {
                 var_dump($result->get('Messages')[0], 'test');
                 $result = $client->deleteMessage([

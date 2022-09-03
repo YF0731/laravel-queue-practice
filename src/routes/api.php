@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DynamoDbController;
 use App\Http\Controllers\JobDispatchController;
+use App\Http\Controllers\ListQueueController;
 use App\Http\Controllers\SqsController;
 use App\Http\Controllers\TestController;
 use Illuminate\Support\Facades\Route;
@@ -25,3 +26,5 @@ Route::get('/dynamo', [DynamoDbController::class, 'test']);
 Route::get('/worker', [JobDispatchController::class, 'send']);
 
 Route::get('/test', [TestController::class, 'test']);
+
+Route::get('/list', [ListQueueController::class, 'list']);
